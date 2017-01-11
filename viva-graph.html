@@ -1,0 +1,79 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="vivagraph-import.html" />
+<!--
+`viva-graph`
+webcomponent wrapper around the vivagraph.js library
+
+@demo demo/index.html
+-->
+
+<dom-module id="viva-graph">
+  <template>
+    <style>
+      :host {
+        display: block;
+        /*height:300px;*/
+        /*width:300px;*/
+      }
+    </style>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'viva-graph',
+
+      properties: {
+        prop1: {
+          type: String,
+          value: 'viva-graph',
+        },
+
+        data: {
+            type: Object,
+            observer: '_dataChanged'
+        },
+
+        nodeColor: {
+            type: String,
+            value: function() {
+                return 'black'
+            }
+        }
+      },
+
+      _dataChanged: function(data) {
+        this.graph.clear();
+        data.nodes.forEach(function(node) {
+            this.graph.addNode(node.id, node)
+        }.bind(this))
+        data.edges.forEach(function(edge) {
+            this.graph.addLink(edge.from, edge.to)
+        }.bind(this))
+      },
+
+      attached: function() {
+          this.graph = Viva.Graph.graph();
+          var graphics = Viva.Graph.View.svgGraphics();
+          graphics.node(function(node) {
+              return Viva.Graph.svg('circle').attr('r', 12)
+                    .attr('style', 'fill:' + this.nodeColor)
+          }.bind(this))
+          .placeNode(function(nodeUI, pos){
+              // Shift image to let links go to the center:
+              nodeUI.attr('cx', pos.x).attr('cy', pos.y);
+          });
+          this.renderer = Viva.Graph.View.renderer(this.graph, {
+              container: this,
+              graphics: graphics
+          });
+          this.async(function() {
+              console.log(this.offsetWidth);
+              console.log(this.offsetHeight);
+              this.renderer.run();
+          });
+      }
+
+    });
+  </script>
+</dom-module>
