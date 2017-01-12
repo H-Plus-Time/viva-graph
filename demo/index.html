@@ -11,16 +11,30 @@
     <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
     <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
     <link rel="import" href="../viva-graph.html">
+    <link rel="import" href="../../iron-ajax/iron-ajax.html">
+    <link rel="import" href="../../polymer/polymer.html">
 
     <style is="custom-style" include="demo-pages-shared-styles">
+        demo-snippet {
+            --demo-snippet-demo: {
+                display:flex;
+                flex-direction:column;
+                height:300px;
+            }
+        }
     </style>
   </head>
   <body>
     <div class="vertical-section-container centered">
       <h3>Basic viva-graph demo</h3>
       <demo-snippet>
-        <template>
-          <viva-graph></viva-graph>
+        <template is="dom-bind">
+          <iron-ajax auto
+            url="example.json"
+            handle-as="json"
+            last-response="{{data}}">
+          </iron-ajax>
+          <viva-graph node-color="purple" radius=10 layout-options='{"springLength" : 90}' data="{{data}}"></viva-graph>
         </template>
       </demo-snippet>
     </div>

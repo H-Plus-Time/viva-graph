@@ -11,38 +11,64 @@ webcomponent wrapper around the vivagraph.js library
   <template>
     <style>
       :host {
-        display: block;
-        /*height:300px;*/
-        /*width:300px;*/
+        flex: auto;
       }
     </style>
   </template>
-
   <script>
     Polymer({
 
       is: 'viva-graph',
 
       properties: {
-        prop1: {
-          type: String,
-          value: 'viva-graph',
-        },
 
         data: {
-            type: Object,
-            observer: '_dataChanged'
+            type: Object
         },
 
         nodeColor: {
             type: String,
+            observer: 'reinitializeGraph',
             value: function() {
                 return 'black'
             }
+        },
+
+        _layoutOptions: {
+            type: Object,
+            value: function() {
+                return {
+                    springLength : 30,
+                    springCoeff : 0.0005,
+                    dragCoeff : 0.02,
+                    gravity : -1.2
+                }
+            }
+        },
+
+        layoutOptions: {
+            type: Object,
+            value: function() {
+                return {}
+            }
+        },
+
+        radius: {
+            type: Number,
+            value: function() { return 12 }
         }
       },
 
-      _dataChanged: function(data) {
+      observers: [
+          'reinitializeGraph(data, nodeColor, layoutOptions)',
+          'repopulateGraph(data)'
+      ],
+
+      repopulateGraph: function(data) {
+        if(!this.graph || !data) {
+            return;
+        }
+        console.log(this.$$('svg'))
         this.graph.clear();
         data.nodes.forEach(function(node) {
             this.graph.addNode(node.id, node)
@@ -50,14 +76,26 @@ webcomponent wrapper around the vivagraph.js library
         data.edges.forEach(function(edge) {
             this.graph.addLink(edge.from, edge.to)
         }.bind(this))
+        console.log(this.$$('svg'))
       },
 
-      attached: function() {
+      createPhysicsLayout: function(graph, layoutOptions) {
+        mergeOptions = Object.assign({}, this._layoutOptions);
+        Object.assign(mergeOptions, layoutOptions);
+        return Viva.Graph.Layout.forceDirected(graph, mergeOptions);
+      },
+
+      reinitializeGraph: function(data, color, layoutOptions) {
           this.graph = Viva.Graph.graph();
+
+          if(this.renderer) {
+              this.renderer.getGraphics().release()
+              this.renderer.dispose()
+          }
           var graphics = Viva.Graph.View.svgGraphics();
           graphics.node(function(node) {
-              return Viva.Graph.svg('circle').attr('r', 12)
-                    .attr('style', 'fill:' + this.nodeColor)
+              return Viva.Graph.svg('circle').attr('r', this.radius)
+                    .attr('style', 'fill:' + color)
           }.bind(this))
           .placeNode(function(nodeUI, pos){
               // Shift image to let links go to the center:
@@ -65,13 +103,15 @@ webcomponent wrapper around the vivagraph.js library
           });
           this.renderer = Viva.Graph.View.renderer(this.graph, {
               container: this,
+              layout: this.createPhysicsLayout(this.graph, layoutOptions),
               graphics: graphics
           });
-          this.async(function() {
-              console.log(this.offsetWidth);
-              console.log(this.offsetHeight);
-              this.renderer.run();
-          });
+          this.renderer.run();
+          this.renderer.getGraphics().getGraphicsRoot().setAttribute('width', this.offsetWidth)
+          this.renderer.getGraphics().getGraphicsRoot().setAttribute('height', this.offsetHeight)
+          if(data.nodes) {
+              this.repopulateGraph(data)
+          }
       }
 
     });

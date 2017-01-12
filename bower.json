@@ -4,7 +4,8 @@
   "main": "viva-graph.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
-    "vivagraphjs": "^0.8.2"
+    "vivagraphjs": "^0.8.2",
+    "iron-ajax": "^1.4.3"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
