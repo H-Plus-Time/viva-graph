@@ -68,7 +68,6 @@ webcomponent wrapper around the vivagraph.js library
         if(!this.graph || !data) {
             return;
         }
-        console.log(this.$$('svg'))
         this.graph.clear();
         data.nodes.forEach(function(node) {
             this.graph.addNode(node.id, node)
@@ -76,13 +75,17 @@ webcomponent wrapper around the vivagraph.js library
         data.edges.forEach(function(edge) {
             this.graph.addLink(edge.from, edge.to)
         }.bind(this))
-        console.log(this.$$('svg'))
       },
 
       createPhysicsLayout: function(graph, layoutOptions) {
         mergeOptions = Object.assign({}, this._layoutOptions);
         Object.assign(mergeOptions, layoutOptions);
         return Viva.Graph.Layout.forceDirected(graph, mergeOptions);
+      },
+
+      nodeGenerator: function(color, node) {
+          return Viva.Graph.svg('circle').attr('r', this.radius)
+                .attr('style', 'fill:' + color)
       },
 
       reinitializeGraph: function(data, color, layoutOptions) {
@@ -93,10 +96,7 @@ webcomponent wrapper around the vivagraph.js library
               this.renderer.dispose()
           }
           var graphics = Viva.Graph.View.svgGraphics();
-          graphics.node(function(node) {
-              return Viva.Graph.svg('circle').attr('r', this.radius)
-                    .attr('style', 'fill:' + color)
-          }.bind(this))
+          graphics.node(this.nodeGenerator.bind(this, color))
           .placeNode(function(nodeUI, pos){
               // Shift image to let links go to the center:
               nodeUI.attr('cx', pos.x).attr('cy', pos.y);
