@@ -1,4 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
+<!-- <link rel="import" href="../iron-resizable-behavior/iron-resizable-behavior.html" /> -->
+
 <link rel="import" href="vivagraph-import.html" />
 <!--
 `viva-graph`
@@ -14,11 +16,16 @@ webcomponent wrapper around the vivagraph.js library
         flex: auto;
       }
     </style>
+    <div id="svgContainer">
+    </div>
   </template>
   <script>
     Polymer({
 
       is: 'viva-graph',
+      behaviours: [
+            Polymer.IronResizableBehavior
+      ],
 
       properties: {
 
@@ -61,8 +68,17 @@ webcomponent wrapper around the vivagraph.js library
 
       observers: [
           'reinitializeGraph(data, nodeColor, layoutOptions)',
-          'repopulateGraph(data)'
+          'repopulateGraph(data)',
       ],
+
+      listeners: {
+          "iron-resize": "handleResize"
+      },
+
+      handleResize(e) {
+            console.log(e);
+            console.log('the event fired')
+      },
 
       repopulateGraph: function(data) {
         if(!this.graph || !data) {
@@ -102,7 +118,7 @@ webcomponent wrapper around the vivagraph.js library
               nodeUI.attr('cx', pos.x).attr('cy', pos.y);
           });
           this.renderer = Viva.Graph.View.renderer(this.graph, {
-              container: this,
+              container: this.$.svgContainer,
               layout: this.createPhysicsLayout(this.graph, layoutOptions),
               graphics: graphics
           });
@@ -112,6 +128,9 @@ webcomponent wrapper around the vivagraph.js library
           if(data.nodes) {
               this.repopulateGraph(data)
           }
+      },
+      attached: function() {
+          this.reinitializeGraph(this.data, this.nodeColor, this.layoutOptions)
       }
 
     });
